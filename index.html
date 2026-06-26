@@ -865,3 +865,143 @@
   </footer>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sports Book – Online Sports Betting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* --- SAME STYLES AS BEFORE (TRIMMED FOR SPACE) --- */
+    body { background:#050814; color:#fff; font-family:system-ui; margin:0; }
+    .nav, .section, .hero { max-width:1200px; margin:auto; padding:1.5rem; }
+    .card { background:#111827; border:1px solid rgba(148,163,184,0.35); padding:1rem; border-radius:0.75rem; cursor:pointer; }
+    .sport-card:hover { border-color:#ffc107; transform:scale(1.02); transition:0.2s; }
+    #live-games-panel { background:#0b0f1a; border-top:2px solid #ffc107; margin-top:2rem; padding:2rem; display:none; }
+    .game-card { background:#111827; border:1px solid rgba(148,163,184,0.35); padding:1rem; border-radius:0.75rem; margin-bottom:1rem; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <nav class="nav">
+    <h2>Sports Book</h2>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <h1>Bet smarter on every <span style="color:#ffc107;">game, match, and moment.</span></h1>
+    <p>Live odds, in‑play betting, and sharp lines across all major sports.</p>
+  </section>
+
+  <!-- TOP LEAGUES (CLICKABLE) -->
+  <section class="section" id="top-leagues">
+    <h2>Top Leagues & Markets</h2>
+
+    <div class="grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;">
+
+      <div class="card sport-card" data-sport="football">
+        <h3>Football</h3>
+        <p>NFL • NCAAF</p>
+      </div>
+
+      <div class="card sport-card" data-sport="basketball">
+        <h3>Basketball</h3>
+        <p>NBA • NCAAB</p>
+      </div>
+
+      <div class="card sport-card" data-sport="baseball">
+        <h3>Baseball</h3>
+        <p>MLB</p>
+      </div>
+
+      <div class="card sport-card" data-sport="soccer">
+        <h3>Soccer</h3>
+        <p>Premier League</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- LIVE GAMES PANEL -->
+  <section id="live-games-panel">
+    <h2 id="live-games-title">Live Games</h2>
+    <p>Odds update automatically every 30 seconds.</p>
+    <div id="live-games-container"></div>
+  </section>
+
+</main>
+
+<footer style="padding:2rem; text-align:center; color:#9ca3af;">
+  Sports betting involves risk. Bet responsibly.
+</footer>
+
+<!-- REAL‑TIME SPORTS API SCRIPT -->
+<script>
+const API_KEY = "YOUR_API_KEY_HERE";  // ← INSERT YOUR API KEY
+
+const sportEndpoints = {
+  football: "americanfootball_nfl",
+  basketball: "basketball_nba",
+  baseball: "baseball_mlb",
+  soccer: "soccer_epl"
+};
+
+async function loadLiveGames(sport) {
+  const endpoint = sportEndpoints[sport];
+  const url = `https://api.the-odds-api.com/v4/sports/${endpoint}/odds/?apiKey=${API_KEY}&regions=us&markets=h2h,spreads,totals`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  const container = document.getElementById("live-games-container");
+  container.innerHTML = "";
+
+  if (!data.length) {
+    container.innerHTML = "<p>No live or upcoming games available.</p>";
+    return;
+  }
+
+  data.forEach(game => {
+    const bookmaker = game.bookmakers?.[0];
+    const h2h = bookmaker?.markets?.find(m => m.key === "h2h");
+
+    const card = document.createElement("div");
+    card.className = "game-card";
+
+    card.innerHTML = `
+      <div style="font-size:1.1rem; font-weight:600;">
+        ${game.home_team} vs ${game.away_team}
+      </div>
+      <div style="margin-top:0.5rem; color:#9ca3af;">
+        <strong>Moneyline:</strong><br>
+        ${h2h?.outcomes?.[0]?.name}: ${h2h?.outcomes?.[0]?.price}<br>
+        ${h2h?.outcomes?.[1]?.name}: ${h2h?.outcomes?.[1]?.price}
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+document.querySelectorAll(".sport-card").forEach(card => {
+  card.addEventListener("click", () => {
+    const sport = card.dataset.sport;
+
+    document.getElementById("live-games-title").innerText =
+      sport.charAt(0).toUpperCase() + sport.slice(1) + " – Live Games";
+
+    document.getElementById("live-games-panel").style.display = "block";
+
+    loadLiveGames(sport);
+    setInterval(() => loadLiveGames(sport), 30000);
+  });
+});
+</script>
+
+</body>
+</html>
